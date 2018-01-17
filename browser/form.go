@@ -15,6 +15,7 @@ import (
 type Submittable interface {
 	Method() string
 	Action() string
+	Name() string
 	Input(name, value string) error
 	Set(name, value string) error
 
@@ -77,6 +78,7 @@ type Form struct {
 	selection *goquery.Selection
 	method    string
 	action    string
+	name      string
 	fields    url.Values
 	buttons   url.Values
 	checkboxs url.Values
@@ -87,13 +89,14 @@ type Form struct {
 // NewForm creates and returns a *Form type.
 func NewForm(bow Browsable, s *goquery.Selection) *Form {
 	fields, buttons, checkboxs, selects, files := serializeForm(s)
-	method, action := formAttributes(bow, s)
+	method, action, name := formAttributes(bow, s)
 
 	return &Form{
 		bow:       bow,
 		selection: s,
 		method:    method,
 		action:    action,
+		name:      name,
 		fields:    fields,
 		buttons:   buttons,
 		checkboxs: checkboxs,
@@ -111,6 +114,11 @@ func (f *Form) Method() string {
 // The URL will always be absolute.
 func (f *Form) Action() string {
 	return f.action
+}
+
+// Form name
+func (f *Form) Name() string {
+	return f.name
 }
 
 // Input sets the value of a form field.
@@ -430,7 +438,7 @@ type selectOptions struct {
 	labels   url.Values
 }
 
-func formAttributes(bow Browsable, s *goquery.Selection) (string, string) {
+func formAttributes(bow Browsable, s *goquery.Selection) (string, string, string) {
 	method, ok := s.Attr("method")
 	if !ok {
 		method = "GET"
@@ -445,5 +453,7 @@ func formAttributes(bow Browsable, s *goquery.Selection) (string, string) {
 	}
 	aurl = bow.ResolveUrl(aurl)
 
-	return strings.ToUpper(method), aurl.String()
+	name, ok := s.Attr("name")
+
+	return strings.ToUpper(method), aurl.String(), name
 }
