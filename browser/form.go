@@ -449,11 +449,14 @@ func formAttributes(bow Browsable, s *goquery.Selection) (string, string, string
 	}
 	aurl, err := url.Parse(action)
 	if err != nil {
-		return "", ""
+		return "", "", ""
 	}
 	aurl = bow.ResolveUrl(aurl)
 
 	name, ok := s.Attr("name")
+	if !ok {
+		return "", "", ""
+	}
 
 	return strings.ToUpper(method), aurl.String(), name
 }
